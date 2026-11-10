@@ -1,0 +1,56 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+
+build_backend:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "Сборка Backend..."
+    - docker build -t $IMAGE_TAG-backend ./backend
+    - docker save $IMAGE_TAG-backend > backend_image.tar
+  artifacts:
+    paths:
+      - backend_image.tar
+    expire_in: 1 week
+
+build_worker:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "Сборка Worker..."
+    - docker build -t $IMAGE_TAG-worker ./worker
+    - docker save $IMAGE_TAG-worker > worker_image.tar
+  artifacts:
+    paths:
+      - worker_image.tar
+    expire_in: 1 week
+
+test_code:
+  stage: test
+  image: python:3.11-slim
+  script:
+    - echo "Проверка синтаксиса Python..."
+    - python -m py_compile backend/main.py
+    - python -m py_compile worker/worker.py
+    - echo "Тесты пройдены!"
+
+deploy_to_swarm:
+  stage: deploy
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "Деплой в Docker Swarm (эмуляция)..."
+    - echo "docker stack deploy -c docker-compose.yml media_stack"
+  only:
+    - main
