@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Данные контейнеров
+minio_data/
+pg_data/
+db_data/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

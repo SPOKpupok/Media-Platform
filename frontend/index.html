@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Worker - Обработка</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ШАПКА САЙТА -->
+    <header class="app-header">
+        <a href="/" class="logo">
+            <span class="logo-icon">⚡</span> Media Platform
+        </a>
+    </header>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="app-main">
+        
+        <!-- Шаг 1: Загрузка -->
+        <section id="upload-block" class="flex-center">
+            <div id="drop-zone">
+                <h2>Перетащите файл сюда</h2>
+                <p>или кликните для выбора</p>
+                <input type="file" id="file-input" class="hidden" accept="image/*,video/*">
+            </div>
+        </section>
+
+        <!-- Шаг 2: Превью и Действия -->
+        <section id="preview-section" class="hidden">
+            <!-- Рабочая область (фото/видео) -->
+            <div id="media-container">
+                <!-- Имя файла поверх медиа (в левом верхнем углу) -->
+                <div id="filename-display" class="filename-overlay"></div>
+                <!-- Сюда JS вставит картинку или видео -->
+            </div>
+            
+            <!-- Панель управления (кнопки по центру) -->
+            <aside id="bottom-panel">
+                <div class="buttons-wrapper">
+                    
+                    <!-- Группа кнопок для ФОТО -->
+                    <div id="photo-btns" class="btn-group hidden">
+                        
+                        <!-- ШАКАЛ -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">Шакал</button>
+                            <div class="dropdown-menu">
+                                <button data-quality="720">720p</button>
+                                <button data-quality="360">360p</button>
+                                <button data-quality="140">140p</button>
+                            </div>
+                        </div>
+                        
+                        <!-- РЕСАЙЗ -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">Ресайз</button>
+                            <div class="dropdown-menu resize-menu">
+                                <div class="input-group">
+                                    <label>Ширина:</label>
+                                    <input type="number" id="resize-width" value="800" min="1" max="4000">
+                                </div>
+                                <div class="input-group">
+                                    <label>Высота:</label>
+                                    <input type="number" id="resize-height" value="600" min="1" max="4000">
+                                </div>
+                                <button class="apply-btn" id="apply-resize">Применить</button>
+                            </div>
+                        </div>
+
+                        <!-- ЯРКОСТЬ -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">Яркость</button>
+                            <div class="dropdown-menu brightness-menu">
+                                <div class="slider-group">
+                                    <label>Уровень: <span id="brightness-value">100</span>%</label>
+                                    <input type="range" id="brightness-range" min="0" max="200" value="100">
+                                </div>
+                                <button class="apply-btn" id="apply-brightness">Применить</button>
+                            </div>
+                        </div>
+                                                <!-- РЕЗКОСТЬ -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">Резкость</button>
+                            <div class="dropdown-menu brightness-menu">
+                                <div class="slider-group">
+                                    <label>Уровень: <span id="sharpness-value">100</span>%</label>
+                                    <!-- 100% = без изменений, 200% = максимальная резкость, 0% = размытие -->
+                                    <input type="range" id="sharpness-range" min="0" max="200" value="100">
+                                </div>
+                                <button class="apply-btn" id="apply-sharpness">Применить</button>
+                            </div>
+                        </div>
+
+                        <!-- КОНТРАСТНОСТЬ -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">Контраст</button>
+                            <div class="dropdown-menu brightness-menu">
+                                <div class="slider-group">
+                                    <label>Уровень: <span id="contrast-value">100</span>%</label>
+                                    <input type="range" id="contrast-range" min="0" max="200" value="100">
+                                </div>
+                                <button class="apply-btn" id="apply-contrast">Применить</button>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+
+                    <!-- Группа кнопок для ВИДЕО -->
+                    <div id="video-btns" class="btn-group hidden">
+                        <!-- ШАКАЛ ВИДЕО -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">Шакал</button>
+                            <div class="dropdown-menu">
+                                <button data-vquality="720">720p</button>
+                                <button data-vquality="360">360p</button>
+                                <button data-vquality="140">140p</button>
+                            </div>
+                        </div>
+
+                        <button class="compress-btn">Сжать</button>
+                        
+                        <!-- СКОРОСТЬ ВИДЕО -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">Скорость</button>
+                            <div class="dropdown-menu brightness-menu">
+                                <div class="slider-group">
+                                    <label>Множитель: <span id="speed-value">1.0</span>x</label>
+                                    <!-- Шаг 0.1 от 0.5 до 4.0 -->
+                                    <input type="range" id="speed-range" min="0.5" max="4.0" step="0.1" value="1.0">
+                                </div>
+                                <button class="apply-btn" id="apply-speed">Применить</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </aside>
+        </section>
+
+        <!-- Шаг 3: Статус -->
+        <section id="status-block" class="hidden flex-center">
+            <div id="status">Ожидание...</div>
+            
+            <!-- Контейнер для превью результата -->
+            <div id="result-preview-container" class="hidden">
+                <img id="result-image" src="" alt="Результат" class="hidden">
+                <video id="result-video" controls class="hidden"></video>
+            </div>
+
+            <a id="download-link" href="#" target="_blank" class="hidden">Скачать результат</a>
+            <button id="reset-btn" class="hidden">Начать заново</button>
+        </section>
+
+    </main>
+
+    <!-- ПОДВАЛ САЙТА -->
+    <footer class="app-footer">
+        <p>&copy; 2026 Курсовая работа. Настройка и администрирование контейнерной платформы.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
